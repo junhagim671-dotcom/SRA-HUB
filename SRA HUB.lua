@@ -2353,6 +2353,340 @@ local function CreateGhostTabs()
 	})
 	table.insert(ToggleControls, {flag = "Noclip", default = false})
 	
+local AimbotGUI_Enabled = false
+local fovCircle_GUI
+local function CreateAimbotGUI()
+	if AimbotGUI_Enabled then return end
+	AimbotGUI_Enabled = true
+	
+	local on = false
+	local tgtPart = "Head"
+	local teamOnly = true
+	local damp = 20
+	local fovRadius = 40
+	
+	local ok, GothamSSm = pcall(function()
+		return Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+	end)
+	local ok2, GothamSSmMedium = pcall(function()
+		return Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal)
+	end)
+	
+	local ScreenGui = Instance.new("ScreenGui")
+	ScreenGui.Name = "AimbotGui"
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	ScreenGui.Parent = PlayerGui
+	ScreenGui.ResetOnSpawn = false
+	
+	local Frame = Instance.new("Frame")
+	Frame.Name = "Frame"
+	Frame.Active = true
+	Frame.ZIndex = 2
+	Frame.BorderSizePixel = 0
+	Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	Frame.BorderMode = Enum.BorderMode.Inset
+	Frame.Size = UDim2.new(0, 160, 0, 198)
+	Frame.Position = UDim2.new(0, 606, 0, -20)
+	Frame.BorderColor3 = Color3.fromRGB(147, 147, 147)
+	Frame.Parent = ScreenGui
+	Frame.Draggable = true
+	
+	local Frame_UICorner = Instance.new("UICorner", Frame)
+	local Frame_UIStroke = Instance.new("UIStroke", Frame)
+	Frame_UIStroke.Thickness = 3
+	Frame_UIStroke.Color = Color3.fromRGB(255, 226, 244)
+	local Frame_UIStroke_UIGradient = Instance.new("UIGradient", Frame_UIStroke)
+	Frame_UIStroke_UIGradient.Rotation = 90
+	Frame_UIStroke_UIGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0.000, Color3.fromRGB(175, 180, 232)),
+		ColorSequenceKeypoint.new(0.502, Color3.fromRGB(125, 113, 155)),
+		ColorSequenceKeypoint.new(0.672, Color3.fromRGB(133, 151, 205)),
+		ColorSequenceKeypoint.new(1.000, Color3.fromRGB(133, 151, 205))
+	})
+	local Frame_UIGradient = Instance.new("UIGradient", Frame)
+	Frame_UIGradient.Rotation = 90
+	Frame_UIGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0.000, Color3.fromRGB(175, 180, 232)),
+		ColorSequenceKeypoint.new(0.502, Color3.fromRGB(125, 113, 155)),
+		ColorSequenceKeypoint.new(1.000, Color3.fromRGB(125, 141, 192))
+	})
+	
+	local Title = Instance.new("TextLabel", Frame)
+	Title.Name = "Title"
+	Title.TextWrapped = true
+	Title.BorderSizePixel = 0
+	Title.TextSize = 20
+	Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	if ok2 then Title.FontFace = GothamSSmMedium else Title.Font = Enum.Font.SourceSansBold end
+	Title.TextColor3 = Color3.fromRGB(234, 229, 255)
+	Title.BackgroundTransparency = 1
+	Title.Size = UDim2.new(0, 160, 0, 34)
+	Title.Text = "SRA HUB"
+	
+	local Title_UIStroke = Instance.new("UIStroke", Title)
+	Title_UIStroke.Color = Color3.fromRGB(189, 167, 192)
+	
+	local ToggleAim = Instance.new("TextButton", Frame)
+	ToggleAim.Name = "ToggleAim"
+	ToggleAim.BackgroundColor3 = Color3.fromRGB(62, 62, 62)
+	ToggleAim.BorderSizePixel = 0
+	ToggleAim.TextSize = 20
+	ToggleAim.TextColor3 = Color3.fromRGB(255, 255, 255)
+	if ok then ToggleAim.FontFace = GothamSSm else ToggleAim.Font = Enum.Font.SourceSans end
+	ToggleAim.Size = UDim2.new(0, 140, 0, 28)
+	ToggleAim.BorderColor3 = Color3.fromRGB(255, 255, 255)
+	ToggleAim.Text = "Toggle Aim"
+	ToggleAim.Position = UDim2.new(0, 10, 0, 38)
+	
+	local ToggleAim_UICorner = Instance.new("UICorner", ToggleAim)
+	local ToggleAim_UIStroke = Instance.new("UIStroke", ToggleAim)
+	ToggleAim_UIStroke.Color = Color3.fromRGB(192, 192, 192)
+	local ToggleAim_UIGradient = Instance.new("UIGradient", ToggleAim)
+	ToggleAim_UIGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0.000, Color3.fromRGB(255, 216, 253)),
+		ColorSequenceKeypoint.new(1.000, Color3.fromRGB(245, 210, 255))
+	})
+	
+	local ToogleTeam = Instance.new("TextButton", Frame)
+	ToogleTeam.Name = "ToogleTeam"
+	ToogleTeam.BorderSizePixel = 0
+	ToogleTeam.TextSize = 16
+	ToogleTeam.TextColor3 = Color3.fromRGB(255, 255, 255)
+	if ok then ToogleTeam.FontFace = GothamSSm else ToogleTeam.Font = Enum.Font.SourceSans end
+	ToogleTeam.BackgroundColor3 = Color3.fromRGB(62, 62, 62)
+	ToogleTeam.Size = UDim2.new(0, 140, 0, 28)
+	ToogleTeam.BorderColor3 = Color3.fromRGB(255, 255, 255)
+	ToogleTeam.Text = "Team Only: ON"
+	ToogleTeam.Position = UDim2.new(0, 10, 0, 68)
+	
+	local ToogleTeam_UICorner = Instance.new("UICorner", ToogleTeam)
+	local ToogleTeam_UIStroke = Instance.new("UIStroke", ToogleTeam)
+	ToogleTeam_UIStroke.Color = Color3.fromRGB(192, 192, 192)
+	local ToogleTeam_UIGradient = Instance.new("UIGradient", ToogleTeam)
+	ToogleTeam_UIGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0.000, Color3.fromRGB(241, 208, 255)),
+		ColorSequenceKeypoint.new(1.000, Color3.fromRGB(245, 210, 255))
+	})
+	
+	local ToggleTarget = Instance.new("TextButton", Frame)
+	ToggleTarget.Name = "ToggleTarget"
+	ToggleTarget.BorderSizePixel = 0
+	ToggleTarget.TextSize = 16
+	ToggleTarget.TextColor3 = Color3.fromRGB(255, 255, 255)
+	if ok then ToggleTarget.FontFace = GothamSSm else ToggleTarget.Font = Enum.Font.SourceSans end
+	ToggleTarget.BackgroundColor3 = Color3.fromRGB(62, 62, 62)
+	ToggleTarget.Size = UDim2.new(0, 140, 0, 28)
+	ToggleTarget.BorderColor3 = Color3.fromRGB(255, 255, 255)
+	ToggleTarget.Text = "Target: Head"
+	ToggleTarget.Position = UDim2.new(0, 10, 0, 98)
+	
+	local ToggleTarget_UICorner = Instance.new("UICorner", ToggleTarget)
+	local ToggleTarget_UIStroke = Instance.new("UIStroke", ToggleTarget)
+	ToggleTarget_UIStroke.Color = Color3.fromRGB(192, 192, 192)
+	local ToggleTarget_UIGradient = Instance.new("UIGradient", ToggleTarget)
+	ToggleTarget_UIGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0.000, Color3.fromRGB(244, 209, 255)),
+		ColorSequenceKeypoint.new(1.000, Color3.fromRGB(245, 210, 255))
+	})
+	
+	local Damper = Instance.new("TextBox", Frame)
+	Damper.Name = "Damper"
+	Damper.BorderSizePixel = 0
+	Damper.TextSize = 10
+	Damper.BackgroundColor3 = Color3.fromRGB(53, 53, 53)
+	if ok2 then Damper.FontFace = GothamSSmMedium else Damper.Font = Enum.Font.SourceSans end
+	Damper.PlaceholderText = "Aim Hardness (default = "..tostring(damp)..")"
+	Damper.Size = UDim2.new(0, 138, 0, 28)
+	Damper.Position = UDim2.new(0, 12, 0, 128)
+	Damper.Text = ""
+	
+	local Damper_UICorner = Instance.new("UICorner", Damper)
+	local Damper_UIStroke = Instance.new("UIStroke", Damper)
+	Damper_UIStroke.Color = Color3.fromRGB(97, 97, 97)
+	local Damper_UIGradient = Instance.new("UIGradient", Damper)
+	Damper_UIGradient.Rotation = 90
+	Damper_UIGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0.000, Color3.fromRGB(237, 163, 255)),
+		ColorSequenceKeypoint.new(0.653, Color3.fromRGB(200, 210, 255)),
+		ColorSequenceKeypoint.new(1.000, Color3.fromRGB(208, 176, 255))
+	})
+	
+	local Fovsize = Instance.new("TextBox", Frame)
+	Fovsize.Name = "Fovsize"
+	Fovsize.BorderSizePixel = 0
+	Fovsize.TextSize = 10
+	Fovsize.BackgroundColor3 = Color3.fromRGB(53, 53, 53)
+	if ok2 then Fovsize.FontFace = GothamSSmMedium else Fovsize.Font = Enum.Font.SourceSans end
+	Fovsize.PlaceholderText = "Fov Size (default = "..tostring(fovRadius)..")"
+	Fovsize.Size = UDim2.new(0, 138, 0, 28)
+	Fovsize.Position = UDim2.new(0, 12, 0, 158)
+	Fovsize.Text = ""
+	
+	local Fovsize_UICorner = Instance.new("UICorner", Fovsize)
+	local Fovsize_UIStroke = Instance.new("UIStroke", Fovsize)
+	Fovsize_UIStroke.Color = Color3.fromRGB(97, 97, 97)
+	local Fovsize_UIGradient = Instance.new("UIGradient", Fovsize)
+	Fovsize_UIGradient.Rotation = 90
+	Fovsize_UIGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0.000, Color3.fromRGB(237, 163, 255)),
+		ColorSequenceKeypoint.new(0.653, Color3.fromRGB(200, 210, 255)),
+		ColorSequenceKeypoint.new(1.000, Color3.fromRGB(208, 176, 255))
+	})
+	
+	local cam = camera
+	local DrawingNew = Drawing and Drawing.new
+	local fovCircle
+	if DrawingNew then
+		fovCircle = Drawing.new("Circle")
+		fovCircle_GUI = fovCircle
+		fovCircle.Visible = false
+		fovCircle.Radius = fovRadius
+		fovCircle.Thickness = 0
+		fovCircle.Filled = false
+		fovCircle.NumSides = 100
+	else
+		fovCircle = nil
+		fovCircle_GUI = nil
+	end
+	
+	local hue = 0
+	if fovCircle then
+		spawn(function()
+			while AimbotGUI_Enabled do
+				hue = (hue + 1) % 360
+				fovCircle.Color = Color3.fromHSV(hue/360, 1, 1)
+				if cam then
+					local vp = cam.ViewportSize
+					fovCircle.Position = Vector2.new(vp.X/2, vp.Y/2)
+				end
+				task.wait(0.03)
+			end
+		end)
+	end
+	
+	local snd = Instance.new("Sound", game:GetService("SoundService"))
+	snd.SoundId = "rbxassetid://9118823102"
+	snd.Volume = 1
+	
+	local function getTargetPartFromCharacter(char, partName)
+		if not char then return nil end
+		local candidate
+		if partName == "Head" then
+			candidate = char:FindFirstChild("Head") or char:FindFirstChild("head")
+		else
+			candidate = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("LowerTorso") or char:FindFirstChild("HumanoidRootPart")
+		end
+		return candidate
+	end
+	
+	local function getClosestTarget()
+		local bp,bprt,bd= nil,nil,math.huge
+		if not cam then return nil end
+		local c2=Vector2.new(cam.ViewportSize.X/2,cam.ViewportSize.Y/2)
+		for _,pl in pairs(plrs:GetPlayers())do
+			if pl~=me and pl.Character and pl.Character:FindFirstChild("Humanoid")and pl.Character.Humanoid.Health>0 then
+				if not(teamOnly and pl.Team==me.Team)then
+					local prt=getTargetPartFromCharacter(pl.Character,tgtPart)
+					if prt and prt.Parent then
+						local wp=prt.Position
+						local sp=cam:WorldToViewportPoint(wp)
+						local sx,sy,depth=sp.X,sp.Y,sp.Z
+						if depth>0 then
+							local rp=RaycastParams.new()
+							rp.FilterDescendantsInstances={me.Character}
+							rp.FilterType=Enum.RaycastFilterType.Blacklist
+							rp.IgnoreWater=true
+							local r=workspace:Raycast(cam.CFrame.Position,(wp-cam.CFrame.Position),rp)
+							if r and r.Instance and r.Instance:IsDescendantOf(pl.Character)then
+								local d=(Vector2.new(sx,sy)-c2).Magnitude
+								if d<bd and d<=fovRadius then
+									bd=d
+									bp=pl
+									bprt=prt
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+		return bp,bprt
+	end
+	
+	local last = tick()
+	run:BindToRenderStep("AimbotStep", Enum.RenderPriority.Camera.Value + 1, function()
+		if not AimbotGUI_Enabled then return end
+		local now = tick()
+		local dt = math.clamp(now - last, 0, 0.1)
+		last = now
+	
+		if fovCircle then fovCircle.Radius = fovRadius end
+	
+		if on and cam then
+			local player, part = getClosestTarget()
+			if player and part and part.Parent then
+				local targetPos = part.Position
+				local currentCF = cam.CFrame
+				local desiredCF = CFrame.new(currentCF.Position, targetPos)
+				local alpha = math.clamp(1 - math.exp(-damp * dt), 0, 1)
+				cam.CFrame = currentCF:Lerp(desiredCF, alpha)
+			end
+		end
+	end)
+	
+	ToggleAim.MouseButton1Click:Connect(function()
+		on = not on
+		if fovCircle then fovCircle.Visible = on end
+		pcall(function() snd:Play() end)
+		ToggleAim.BackgroundColor3 = on and Color3.fromHex("#b167b8") or Color3.fromRGB(62, 62, 62)
+	end)
+	
+	ToggleTarget.MouseButton1Click:Connect(function()
+		tgtPart = (tgtPart == "Head") and "Torso" or "Head"
+		ToggleTarget.Text = "Target: " .. tgtPart
+		pcall(function() snd:Play() end)
+	end)
+	
+	ToogleTeam.MouseButton1Click:Connect(function()
+		teamOnly = not teamOnly
+		ToogleTeam.Text = "Team Only: " .. (teamOnly and "ON" or "OFF")
+		ToogleTeam.BackgroundColor3 = teamOnly and Color3.fromRGB(62,62,62) or Color3.fromRGB(100,100,100)
+		pcall(function() snd:Play() end)
+	end)
+	
+	Damper.FocusLost:Connect(function()
+		local n = tonumber(Damper.Text)
+		if n and n > 0 then
+			damp = n
+		end
+	end)
+	
+	Fovsize.FocusLost:Connect(function()
+		local n = tonumber(Fovsize.Text)
+		if n and n > 0 then
+			fovRadius = n
+		end
+	end)
+	
+	if PlayerGui:FindFirstChild("AimbotGui") and PlayerGui.AimbotGui ~= ScreenGui then
+		PlayerGui.AimbotGui:Destroy()
+	end
+	
+	ToggleTarget.Text = "Target: " .. tgtPart
+	ToogleTeam.Text = "Team Only: " .. (teamOnly and "ON" or "OFF")
+	Fovsize.PlaceholderText = "Fov Size (default = "..tostring(fovRadius)..")"
+	Damper.PlaceholderText = "Aim Hardness (default = "..tostring(damp)..")"
+end
+
+local function RemoveAimbotGUI()
+	if not AimbotGUI_Enabled then return end
+	AimbotGUI_Enabled = false
+	local aimbotGui = PlayerGui:FindFirstChild("AimbotGui")
+	if aimbotGui then aimbotGui:Destroy() end
+	run:UnbindFromRenderStep("AimbotStep")
+	if fovCircle_GUI then fovCircle_GUI:Remove() fovCircle_GUI = nil end
+end
+	
 	local CombatTab = Window:CreateTab({
 		Name = "combat",
 		ShowTitle = true
@@ -2376,6 +2710,7 @@ local function CreateGhostTabs()
 		end,
 	})
 	table.insert(ToggleControls, {flag = "SilentAim", default = false})
+	table.insert(ToggleControls, "SilentAim")
 	
 	CombatTab:CreateToggle({
 		Name = "AimBot",
@@ -2483,6 +2818,20 @@ local function CreateGhostTabs()
 		end,
 	})
 	table.insert(ToggleControls, {flag = "TrigerBot", default = false})
+	
+	CombatTab:CreateToggle({
+		Name = "Aimbot GUI",
+		CurrentValue = false,
+		Flag = "AimbotGUI",
+		Callback = function(Value)
+			if Value then
+				CreateAimbotGUI()
+			else
+				RemoveAimbotGUI()
+			end
+		end,
+	})
+	table.insert(ToggleControls, {flag = "AimbotGUI", default = false})
 	
 	local VisualTab = Window:CreateTab({
 		Name = "Visual",
